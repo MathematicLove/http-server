@@ -4,8 +4,13 @@ import org.httpServerAyzek.http.HttpServer;
 import org.httpServerAyzek.http.handler.HttpHandler;
 import org.httpServerAyzek.http.HttpRes;
 import org.httpServerAyzek.http.util.HttpReqParser;
+
+import javax.imageio.ImageIO;
+import java.awt.*;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.logging.Logger;
+import java.nio.file.*;
 
 public class RunServer {
     public static void main(String[] args) {
@@ -41,6 +46,29 @@ public class RunServer {
             @Override
             public void handle(HttpReqParser request, HttpRes response) {
                 response.setBody("DELETE: done");
+            }
+        });
+        server.addListener("/pic", "GET", (req, res) -> {
+            Path p = Paths.get("logo.png");
+            byte[] data = Files.readAllBytes(p);
+            res.addHeader("Content-Type", "image/png");
+            res.setBody(data);
+        });
+        server.addListener("/pic", "GET", (req, res) -> {
+            try {
+                BufferedImage img = new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB);
+                Graphics2D g = img.createGraphics();
+                g.setColor(Color.RED);
+                g.fillRect(0, 0, 10, 10);
+                g.dispose();
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                ImageIO.write(img, "png", baos);
+                byte[] data = baos.toByteArray();
+                res.addHeader("Content-Type", "image/png");
+                res.setBody(data);
+            } catch (Exception e) {
+                res.setStatusCode(500);
+                res.setBody("Error generating image");
             }
         });
         try {

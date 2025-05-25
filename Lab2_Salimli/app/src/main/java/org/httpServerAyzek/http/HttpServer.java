@@ -89,12 +89,20 @@ public class HttpServer {
         if (methodHandlers != null) {
             handler = methodHandlers.get(request.getPath());
         }
-        if (handler != null) {
-            handler.handle(request, response);
-        } else {
-            response.setStatusCode(404);
-            response.setReasonPhrase("Not Found!");
-            response.setBody("Not Found!");
+        try {
+            if (handler != null) {
+                handler.handle(request, response);
+            } else {
+                response.setStatusCode(404);
+                response.setReasonPhrase("Not Found :(");
+                response.setBody("Not Found :(");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            response = new HttpRes();
+            response.setStatusCode(500);
+            response.setReasonPhrase("Internal Server Error :(");
+            response.setBody("Internal Server Error :(");
         }
         response.send(out);
     }
