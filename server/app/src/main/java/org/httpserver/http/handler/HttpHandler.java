@@ -1,7 +1,7 @@
-package org.httpServerAyzek.http.handler;
+package org.httpserver.http.handler;
 
-import org.httpServerAyzek.http.HttpRes;
-import org.httpServerAyzek.http.util.HttpReqParser;
+import org.httpserver.http.HttpRes;
+import org.httpserver.http.util.HttpReqParser;
 
 import java.io.IOException;
 

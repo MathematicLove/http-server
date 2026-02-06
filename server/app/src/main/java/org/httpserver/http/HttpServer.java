@@ -1,7 +1,7 @@
-package org.httpServerAyzek.http;
+package org.httpserver.http;
 
-import org.httpServerAyzek.http.handler.HttpHandler;
-import org.httpServerAyzek.http.util.HttpReqParser;
+import org.httpserver.http.handler.HttpHandler;
+import org.httpserver.http.util.HttpReqParser;
 import java.net.*;
 import java.nio.channels.*;
 import java.io.*;

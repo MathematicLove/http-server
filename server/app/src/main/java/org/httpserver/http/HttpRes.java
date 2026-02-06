@@ -1,4 +1,4 @@
-package org.httpServerAyzek.http;
+package org.httpserver.http;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
