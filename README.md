@@ -1,48 +1,61 @@
-# HTTP Server
-## Для полной проверки можно использовать 'curl -X -d "что-то" http://localhost:8080/linkN', где 1 > N >= 4 && 'curl -X -d DELETE http...8080/delete' 
-## Сервер
+# HTTP Server on Java
 
-## Для проверки бинарных файов: curl http://localhost:8080/pic --output test.png && open test.png
+## Overview
 
+A configurable HTTP server implemented in Java that supports core HTTP methods and provides a flexible handler registration system. The server can be deployed with either traditional thread pools or virtual threads (on Java 19+).
 
-- **HTTP методы**: поддерживаются GET, POST, PUT, PATCH, DELETE.
-- **Разбор запроса**: обработка строки запроса, заголовков (доступных в виде `Map`) и тела запроса.
-- **Формирование ответа**: возможность задавать статус ответа, статусную фразу, заголовки и тело.
-- **Настраиваемый сервер**: создаётся сервер на указанном хосте и порту.
-- **Регистрация обработчиков**: API позволяет добавлять обработчики (через интерфейс `HttpHandler`) для отдельных URL-путей и HTTP-методов.
-- **Многопоточность**: сервер использует `ExecutorService` с возможностью выбора между обычными потоками и виртуальными потоками (при поддержке Java 19+).
+## Features
 
-## Структура 
+- **HTTP Methods**: Supports GET, POST, PUT, PATCH, DELETE.
+- **Request Parsing**: Parses the request line, headers (available as a `Map`), and request body.
+- **Response Building**: Allows setting the response status, status phrase, headers, and body.
+- **Configurable Server**: Creates a server on a specified host and port.
+- **Handler Registration**: API enables adding handlers (via the `HttpHandler` interface) for specific URL paths and HTTP methods.
+- **Concurrency**: The server uses an `ExecutorService` with a choice between standard threads or virtual threads (when using Java 19+).
 
-- **org.httpServerAyzek.http.handler.HttpHandler**  
-  Интерфейс для реализации пользовательских обработчиков HTTP-запросов.  
-  Каждый обработчик получает разобранный запрос (`HttpReqParser`) и объект ответа (`HttpRes`).
+## Project Structure
 
-- **org.httpServerAyzek.http.util.HttpReqParser**  
-  Класс для парсинга входящего HTTP-запроса. Извлекает метод, путь, версию протокола, заголовки и тело запроса.
+- **org.httpserver.http.handler.HttpHandler**  
+  Interface for implementing custom HTTP request handlers.  
+  Each handler receives a parsed request (`HttpReqParser`) and a response object (`HttpRes`).
 
-- **org.httpServerAyzek.http.HttpRes**  
-  Класс для формирования и отправки HTTP-ответа клиенту. Позволяет задавать код статуса, статусную фразу, заголовки и тело, а также автоматически вычисляет `Content-Length` при необходимости.
+- **org.httpserver.http.util.HttpReqParser**  
+  Class for parsing incoming HTTP requests. Extracts the method, path, protocol version, headers, and request body.
 
-- **org.httpServerAyzek.http.HttpServer**  
-  Основной класс сервера, который использует `ServerSocketChannel` для прослушивания соединений. Обрабатывает входящие подключения, парсит запросы и передаёт их зарегистрированным обработчикам.
+- **org.httpserver.http.HttpRes**  
+  Class for constructing and sending HTTP responses to clients. Allows setting the status code, status phrase, headers, and body. Automatically calculates the `Content-Length` header when necessary.
 
-- **org.httpServerAyzek.RunServer**  
-  Точка входа в приложение. Демонстрирует создание экземпляра сервера, регистрацию обработчиков для различных HTTP-методов и запуск сервера.
+- **org.httpserver.http.HttpServer**  
+  The main server class, which uses `ServerSocketChannel` to listen for connections. It handles incoming connections, parses requests, and passes them to registered handlers.
 
-## Принцип работы сервера
+- **org.httpserver.RunServer**  
+  The application entry point. Demonstrates creating a server instance, registering handlers for various HTTP methods, and starting the server.
 
-1. **Инициализация и настройка**  
-   При создании сервера задаются хост, порт, количество потоков и тип используемого `ExecutorService` (обычные или виртуальные потоки). Через публичный API регистрация обработчиков производится методом `addListener(path, method, handler)`.
+## Server Operation
 
-2. **Обработка входящих соединений**  
-   Сервер использует неблокирующий режим `ServerSocketChannel` для приёма новых соединений. При установке соединения переключает его в блокирующий режим, а далее передает обработку в пул потоков.
+1. **Initialization and Configuration**  
+   During server creation, the host, port, thread count, and the type of `ExecutorService` (standard or virtual threads) are configured. Handlers are registered via the public API method `addListener(path, method, handler)`.
 
-3. **Парсинг запроса**  
-   В методе `handleClient` входящий запрос разбирается с использованием класса `HttpReqParser`, который извлекает HTTP-метод, URL-путь, заголовки и тело запроса.
+2. **Handling Incoming Connections**  
+   The server uses non-blocking `ServerSocketChannel` to accept new connections. Upon establishing a connection, it switches the channel to blocking mode and delegates processing to the thread pool.
 
-4. **Вызов обработчика**  
-   В зависимости от HTTP-метода и URL-пути сервер ищет зарегистрированный обработчик. Если обработчик найден, он вызывается для формирования ответа. В противном случае возвращается ответ с кодом 404.
+3. **Request Parsing**  
+   In the `handleClient` method, the incoming request is parsed using the `HttpReqParser` class, which extracts the HTTP method, URL path, headers, and request body.
 
-5. **Формирование и отправка ответа**  
-   Класс `HttpRes` используется для задания статуса, заголовков и тела ответа. Перед отправкой автоматически добавляется заголовок `Content-Length` (если требуется), после чего готовый ответ отправляется клиенту.
+4. **Handler Invocation**  
+   Based on the HTTP method and URL path, the server searches for a registered handler. If found, the handler is invoked to generate a response. Otherwise, a 404 response is returned.
+
+5. **Response Building and Sending**  
+   The `HttpRes` class is used to set the status, headers, and body of the response. Before sending, the `Content-Length` header is automatically added (if required). The complete response is then sent to the client.
+
+## Testing Examples
+
+- **Testing General Endpoints**:  
+  Use commands like `curl -X -d "data" http://localhost:8080/linkN`, where 1 <= N <= 4.
+  Example: `curl -X POST -d "sample data" http://localhost:8080/link2`
+
+- **Testing DELETE Method**:  
+  `curl -X DELETE http://localhost:8080/delete`
+
+- **Testing Binary Files (e.g., images)**:  
+  `curl http://localhost:8080/pic --output test.png && open test.png`
